@@ -31,21 +31,17 @@
         html { scroll-behavior: smooth; }
         .deal-card-hover { transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; }
         .deal-card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
-        /* side bars for mobile nav buttons */
+        /* Mobile nav button styling with icon color feedback */
         .nav-btn { @apply flex flex-col items-center p-2 text-xs text-gray-500 transition duration-150; position: relative; }
-        .nav-btn::before, .nav-btn::after { content: ''; position: absolute; top: 10%; bottom: 10%; width: 6px; background: transparent; transition: background-color .12s ease, transform .12s ease; border-radius: 3px; pointer-events: none; z-index: 10; transform: scaleY(0.95); }
-        .nav-btn::before { left: 0; }
-        .nav-btn::after { right: 0; }
-        /* Hover/focus/active support for desktop and touch devices */
-        .nav-btn:hover::before, .nav-btn:hover::after,
-        .nav-btn:focus::before, .nav-btn:focus::after,
-        .nav-btn:active::before, .nav-btn:active::after,
-        .nav-btn.touch-active::before, .nav-btn.touch-active::after { background: #00BFFF; transform: scaleY(1); }
-        /* Make the currently active nav button show persistent blue side bars */
-        .nav-btn.active::before, .nav-btn.active::after { background: #00BFFF; transform: scaleY(1); }
+        .nav-btn svg { transition: color .15s ease, transform .15s ease; }
+        /* Hover/focus/active: turn icon light blue */
+        .nav-btn:hover svg, .nav-btn:focus svg, .nav-btn:active svg { color: #00BFFF; }
+        .nav-btn.touch-active svg { color: #00BFFF; transform: scale(1.1); }
+        /* Active nav button: persistent light blue icon */
+        .nav-btn.active { @apply text-logo-blue font-bold; }
+        .nav-btn.active svg { color: #00BFFF; }
         /* Improve touch behavior on iOS/Android */
         .nav-btn { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-        .nav-btn.active { @apply text-logo-blue font-bold; }
         .deal-description { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; }
         .heart { cursor: pointer; font-size: 20px; color: #e5e7eb; transition: transform .12s ease, color .12s ease; }
         .heart.saved { color: #ef4444; transform: scale(1.05); }
@@ -287,11 +283,13 @@ function setupEventListeners(){
     window.addEventListener('hashchange',router);
     const nav = document.querySelector('nav.fixed');
     if(nav) {
-        // Immediate visual feedback for touch/pointer devices: set active on pointerdown
+        // Immediate visual feedback for touch/pointer devices: set active on pointerdown with haptic feedback
         document.querySelectorAll('.nav-btn').forEach(btn=>{
             btn.addEventListener('pointerdown', ()=>{
                 document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
                 btn.classList.add('active');
+                // Haptic feedback on tap (if available)
+                if(navigator.vibrate) navigator.vibrate(10);
             });
         });
         nav.addEventListener('click',(event)=>{
