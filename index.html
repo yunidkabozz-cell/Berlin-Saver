@@ -31,7 +31,20 @@
         html { scroll-behavior: smooth; }
         .deal-card-hover { transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; }
         .deal-card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
-        .nav-btn { @apply flex flex-col items-center p-2 text-xs text-gray-500 transition duration-150; }
+        /* side bars for mobile nav buttons */
+        .nav-btn { @apply flex flex-col items-center p-2 text-xs text-gray-500 transition duration-150; position: relative; }
+        .nav-btn::before, .nav-btn::after { content: ''; position: absolute; top: 10%; bottom: 10%; width: 6px; background: transparent; transition: background-color .12s ease, transform .12s ease; border-radius: 3px; pointer-events: none; z-index: 10; transform: scaleY(0.95); }
+        .nav-btn::before { left: 0; }
+        .nav-btn::after { right: 0; }
+        /* Hover/focus/active support for desktop and touch devices */
+        .nav-btn:hover::before, .nav-btn:hover::after,
+        .nav-btn:focus::before, .nav-btn:focus::after,
+        .nav-btn:active::before, .nav-btn:active::after,
+        .nav-btn.touch-active::before, .nav-btn.touch-active::after { background: #00BFFF; transform: scaleY(1); }
+        /* Make the currently active nav button show persistent blue side bars */
+        .nav-btn.active::before, .nav-btn.active::after { background: #00BFFF; transform: scaleY(1); }
+        /* Improve touch behavior on iOS/Android */
+        .nav-btn { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
         .nav-btn.active { @apply text-logo-blue font-bold; }
         .deal-description { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; }
         .heart { cursor: pointer; font-size: 20px; color: #e5e7eb; transition: transform .12s ease, color .12s ease; }
@@ -127,7 +140,7 @@ const dealsData = {
         { id: 'gr4', name: 'Food Sharing (Free)', price: '€0/Food', why: 'Free surplus food (requires registration).', logo: 'https://placehold.co/60x60/FFA500/FFFFFF?text=FREE', rating: 4.6, description: 'Join local Food Sharing initiatives to collect food that would otherwise be thrown away.', websiteLink: 'https://foodsharing.de/berlin', mapsQuery: 'Food Sharing Hub Berlin' },
     ],
     clothes_deals: [
-        { id: 'c1', name: 'Charity Shop/Second Hand (Bulk)', price: '€3.00/Item Avg.', why: 'Lowest price for wearable, quality clothes.', logo: 'https://placehold.co/60x60/800080/FFFFFF?text=USED', rating: 4.4, description: 'Visit specific kilo-shops or local Red Cross shops on discount days.', websiteLink: 'https://berlin-vintage-map.com', mapsQuery: 'Humana Second Hand & Vintage Berlin' },
+        { id: 'c1', name: 'Charity Shop/Second Hand (Bulk)', price: '€3.00/Item Avg.', why: 'Lowest price for wearable, quality clothes.', logo: 'https://placehold.co/60x60/800080/FFFFFF?text=USED', rating: 4.4, description: 'Visit specific kilo-shops or local Red Cross shops on discount days.', websiteLink: 'https://www.humana.org', mapsQuery: 'Humana Second Hand & Vintage Berlin' },
         { id: 'c2', name: 'Online Outlet (End-of-Season)', price: 'Up to 70% Off', why: 'New clothes at used prices from major retailers.', logo: 'https://placehold.co/60x60/FF5722/FFFFFF?text=OUTLET', rating: 4.2, description: 'Sign up for newsletters from major European online outlets for end-of-season sales.', websiteLink: 'https://www.zalando-lounge.de', mapsQuery: null },
         { id: 'c3', name: 'Vinted/Ebay Kleinanzeigen', price: 'Varies (Very Low)', why: 'Direct peer-to-peer buying for specific items.', logo: 'https://placehold.co/60x60/00BFFF/111827?text=P2P', rating: 4.0, description: 'Ideal for finding specific brand items or sizes cheaply.', websiteLink: 'https://vinted.de/berlin', mapsQuery: null },
         { id: 'c4', name: 'Swap Parties (Kleidertausch)', price: '€0/Item', why: 'Free, sustainable clothes replacement.', logo: 'https://placehold.co/60x60/9ACD32/FFFFFF?text=SWAP', rating: 4.8, description: 'Attend local clothes-swapping events. Bring items you don\'t want and take home new ones for free.', websiteLink: 'https://kleidertausch-berlin.de', mapsQuery: 'Kleidertausch Berlin' },
@@ -273,14 +286,23 @@ function router(){
 function setupEventListeners(){
     window.addEventListener('hashchange',router);
     const nav = document.querySelector('nav.fixed');
-    if(nav) nav.addEventListener('click',(event)=>{
-        const target=event.target.closest('[data-nav-view]');
-        if(target){
-            const view=target.getAttribute('data-nav-view');
-            const hash=(view==='categories'?'listing/gyms':view);
-            window.location.hash=hash;
-        }
-    });
+    if(nav) {
+        // Immediate visual feedback for touch/pointer devices: set active on pointerdown
+        document.querySelectorAll('.nav-btn').forEach(btn=>{
+            btn.addEventListener('pointerdown', ()=>{
+                document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+        nav.addEventListener('click',(event)=>{
+            const target=event.target.closest('[data-nav-view]');
+            if(target){
+                const view=target.getAttribute('data-nav-view');
+                const hash=(view==='categories'?'listing/gyms':view);
+                window.location.hash=hash;
+            }
+        });
+    }
     document.getElementById('content').addEventListener('click',(event)=>{
         const link=event.target.closest('[data-route]');
         if(link){
