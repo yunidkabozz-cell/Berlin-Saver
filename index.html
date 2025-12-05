@@ -239,7 +239,7 @@ function renderSidebar(currentRoute){
     html += `<h3 class="text-lg font-bold text-secondary mb-3">Saving Categories</h3><nav class="space-y-1 mb-8">`;
     Object.keys(dealsData).forEach(key=>{
         const isActive = currentRoute === `listing/${key}` ? 'bg-logo-blue/10 text-logo-blue font-semibold' : 'text-gray-700 hover:bg-gray-100';
-        html+=`<a href="#listing/${key}" class="block px-3 py-2 rounded-lg transition-colors duration-150 ${isActive}">${getTitleFromKey(key)}</a>`
+        html+=`<a href="#listing/${key}" class="block px-3 py-2 rounded-lg transition-colors duration-150 ${isActive}">${getTitleFromKey(key)}</a>`;
     });
     html += `</nav><h3 class="text-lg font-bold text-secondary mb-3 border-t pt-4">Research & Info</h3><nav class="space-y-1"><a href="#featured" class="block px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100">Featured Deals</a></nav>`;
     sidebar.innerHTML = html;
