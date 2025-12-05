@@ -129,7 +129,7 @@ function renderListing(categoryKey){
     updateSEO(categoryTitle, `The cheapest and best value deals for ${categoryTitle.toLowerCase()} in Berlin.`);
     let html=`<h2 class="text-3xl font-extrabold text-secondary mb-2">${categoryTitle} Deals</h2><p class="text-lg text-gray-600 mb-8">Top ${categoryDeals.length} options ranked by verified value.</p><div class="space-y-6">`;
     categoryDeals.forEach(deal=>{
-        html+=`<a href="#detail/${categoryKey}/${deal.id}" class="deal-card-hover flex flex-col md:flex-row bg-white p-4 sm:p-6 rounded-xl shadow-md border-l-8 border-primary hover:border-logo-blue transition-all duration-300"><div class="flex-grow"><div class="flex items-start mb-3"><img src="${deal.logo}" alt="${deal.name} Logo" class="w-12 h-12 rounded-full mr-4 shadow-inner flex-shrink-0"><div><h3 class="text-xl font-bold text-secondary flex items-center">${deal.name} ${renderSaveButton(categoryKey,deal.id)}</h3><p class="text-sm text-primary font-semibold">${deal.why}</p></div></div><p class="text-gray-700 text-sm deal-description">${deal.description}</p></div><div class="flex-shrink-0 mt-4 md:mt-0 md:ml-6 flex md:flex-col items-center md:items-end justify-between border-t md:border-t-0 md:border-l pt-3 md:pl-6"><div class="text-right"><div class="text-3xl font-black text-primary leading-none">${deal.price}</div><div class="text-xs text-gray-500">Monthly/Total Cost</div></div><button data-route="detail/${categoryKey}/${deal.id}" class="bg-logo-blue text-white text-sm font-semibold px-4 py-2 rounded-full mt-3 hover:bg-blue-400 transition duration-150 shadow-md">View Details &rarr;</button></div></a>`
+        html+=`<div class="deal-card-hover flex flex-col md:flex-row bg-white p-4 sm:p-6 rounded-xl shadow-md border-l-8 border-primary hover:border-logo-blue transition-all duration-300 cursor-pointer"><div class="flex-grow"><div class="flex items-start mb-3"><img src="${deal.logo}" alt="${deal.name} Logo" class="w-12 h-12 rounded-full mr-4 shadow-inner flex-shrink-0"><div><h3 class="text-xl font-bold text-secondary flex items-center">${deal.name} ${renderSaveButton(categoryKey,deal.id)}</h3><p class="text-sm text-primary font-semibold">${deal.why}</p></div></div><p class="text-gray-700 text-sm deal-description">${deal.description}</p></div><div class="flex-shrink-0 mt-4 md:mt-0 md:ml-6 flex md:flex-col items-center md:items-end justify-between border-t md:border-t-0 md:border-l pt-3 md:pl-6"><div class="text-right"><div class="text-3xl font-black text-primary leading-none">${deal.price}</div><div class="text-xs text-gray-500">Monthly/Total Cost</div></div><a href="#detail/${categoryKey}/${deal.id}" data-route="detail/${categoryKey}/${deal.id}" class="bg-logo-blue text-white text-sm font-semibold px-4 py-2 rounded-full mt-3 hover:bg-blue-400 transition duration-150 shadow-md inline-block text-center">View Details &rarr;</a></div></div>`
     });
     html += '</div>';
     document.getElementById('content').innerHTML = html;
@@ -205,21 +205,26 @@ function setupEventListeners(){
         const target=event.target.closest('[data-nav-view]');
         if(target){
             const view=target.getAttribute('data-nav-view');
-            const hash=(view==='categories'?'home':view);
+            const hash=(view==='categories'?'listing/gyms':view);
             window.location.hash=hash;
         }
     });
     document.getElementById('content').addEventListener('click',(event)=>{
-        const target=event.target.closest('button[data-route]');
-        if(target){
-            const route=target.getAttribute('data-route');
+        const link=event.target.closest('[data-route]');
+        if(link){
+            const route=link.getAttribute('data-route');
             window.location.hash=route;
             event.preventDefault();
         }
     });
+    document.querySelector('header a[data-route]')?.addEventListener('click',(event)=>{
+        const route=event.currentTarget.getAttribute('data-route');
+        window.location.hash=route;
+        event.preventDefault();
+    });
 }
 
-window.onload=function(){ setupEventListeners(); router(); }
+document.addEventListener('DOMContentLoaded',function(){ setupEventListeners(); router(); });
 </script>
 </body>
 </html>
