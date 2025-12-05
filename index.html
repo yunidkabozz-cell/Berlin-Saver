@@ -164,6 +164,103 @@ function getTitleFromKey(key){ return key.replace(/_/g,' ').split(' ').map(w=>w.
 function updateSEO(title, desc){ document.title = title + ' – Berlin Savers'; const md=document.querySelector('meta[name="description"]'); if(md) md.setAttribute('content',desc); }
 function renderRating(rating){ return `<span class="text-star-color">${'★'.repeat(Math.round(rating))}${'☆'.repeat(5-Math.round(rating))}</span>`; }
 
+function renderAdmin(){
+    updateSEO('Admin Dashboard','Manage products, pricing, and deals');
+    let html = `<h2 class="text-3xl font-extrabold text-secondary mb-6">Admin Dashboard</h2>`;
+    html += `<div class="bg-orange-100 border-l-4 border-primary p-4 mb-6 rounded"><p class="text-sm text-secondary"><strong>Note:</strong> Changes are saved to browser storage. To persist permanently, export data regularly.</p></div>`;
+    
+    // Category selector
+    html += `<div class="mb-6"><label class="block text-lg font-bold text-secondary mb-3">Select Category:</label>`;
+    html += `<select id="admin-category" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"><option value="">-- Choose Category --</option>`;
+    Object.keys(dealsData).forEach(key=>{ html += `<option value="${key}">${getTitleFromKey(key)}</option>`; });
+    html += `</select></div>`;
+    
+    // Deals table for selected category
+    html += `<div id="admin-deals-table" class="bg-white rounded-lg shadow-lg p-6 mb-6"></div>`;
+    
+    // Add new deal form
+    html += `<div class="bg-white rounded-lg shadow-lg p-6 mb-6"><h3 class="text-xl font-bold text-secondary mb-4">Add New Deal</h3>`;
+    html += `<form id="admin-add-form"><div class="grid grid-cols-1 sm:grid-cols-2 gap-4">`;
+    html += `<input type="text" id="new-id" placeholder="Deal ID (e.g., g6)" class="px-4 py-2 border rounded" required>`;
+    html += `<input type="text" id="new-name" placeholder="Name" class="px-4 py-2 border rounded" required>`;
+    html += `<input type="text" id="new-price" placeholder="Price (e.g., €10/Month)" class="px-4 py-2 border rounded" required>`;
+    html += `<input type="text" id="new-why" placeholder="Why (one-line value prop)" class="px-4 py-2 border rounded" required>`;
+    html += `<input type="number" id="new-rating" placeholder="Rating (0-5)" min="0" max="5" step="0.1" class="px-4 py-2 border rounded">`;
+    html += `<input type="url" id="new-website" placeholder="Website (optional)" class="px-4 py-2 border rounded">`;
+    html += `<textarea id="new-description" placeholder="Description" class="px-4 py-2 border rounded col-span-1 sm:col-span-2"></textarea>`;
+    html += `<input type="text" id="new-maps" placeholder="Maps Query (optional)" class="px-4 py-2 border rounded col-span-1 sm:col-span-2">`;
+    html += `<button type="submit" class="col-span-1 sm:col-span-2 bg-primary text-white px-6 py-3 rounded font-bold hover:bg-primary-dark transition">Add Deal</button>`;
+    html += `</div></form></div>`;
+    
+    document.getElementById('content').innerHTML = html;
+    
+    // Event listeners for admin
+    const categorySelect = document.getElementById('admin-category');
+    categorySelect.addEventListener('change', ()=>renderAdminTable(categorySelect.value));
+    
+    const addForm = document.getElementById('admin-add-form');
+    addForm.addEventListener('submit', (e)=>{
+        e.preventDefault();
+        const category = categorySelect.value;
+        if(!category) { alert('Please select a category'); return; }
+        const newDeal = {
+            id: document.getElementById('new-id').value,
+            name: document.getElementById('new-name').value,
+            price: document.getElementById('new-price').value,
+            why: document.getElementById('new-why').value,
+            logo: 'https://placehold.co/60x60/FF8C00/FFFFFF?text=NEW',
+            rating: parseFloat(document.getElementById('new-rating').value) || 4,
+            description: document.getElementById('new-description').value,
+            websiteLink: document.getElementById('new-website').value || null,
+            mapsQuery: document.getElementById('new-maps').value || null
+        };
+        dealsData[category].push(newDeal);
+        alert('Deal added successfully');
+        addForm.reset();
+        renderAdminTable(category);
+    });
+}
+
+function renderAdminTable(category){
+    if(!category) return;
+    let html = `<h3 class="text-2xl font-bold text-secondary mb-4">${getTitleFromKey(category)} - ${dealsData[category].length} deals</h3>`;
+    html += `<div class="overflow-x-auto"><table class="w-full border-collapse"><thead><tr class="bg-gray-100"><th class="border p-2 text-left">ID</th><th class="border p-2 text-left">Name</th><th class="border p-2 text-left">Price</th><th class="border p-2 text-left">Rating</th><th class="border p-2 text-center">Actions</th></tr></thead><tbody>`;
+    dealsData[category].forEach(deal=>{
+        html += `<tr class="hover:bg-gray-50"><td class="border p-2">${deal.id}</td><td class="border p-2">${deal.name}</td><td class="border p-2">${deal.price}</td><td class="border p-2">${deal.rating}</td><td class="border p-2 text-center"><button class="edit-deal bg-logo-blue text-white px-3 py-1 rounded mr-2" data-cat="${category}" data-id="${deal.id}">Edit</button><button class="delete-deal bg-red-500 text-white px-3 py-1 rounded" data-cat="${category}" data-id="${deal.id}">Delete</button></td></tr>`;
+    });
+    html += `</tbody></table></div>`;
+    
+    document.getElementById('admin-deals-table').innerHTML = html;
+    
+    // Edit/Delete handlers
+    document.querySelectorAll('.edit-deal').forEach(btn=>btn.addEventListener('click', ()=>{
+        const cat = btn.getAttribute('data-cat');
+        const id = btn.getAttribute('data-id');
+        const deal = dealsData[cat].find(d=>d.id===id);
+        if(!deal) return;
+        const newName = prompt('New name:', deal.name);
+        if(newName) deal.name = newName;
+        const newPrice = prompt('New price:', deal.price);
+        if(newPrice) deal.price = newPrice;
+        const newRating = prompt('New rating:', deal.rating);
+        if(newRating) deal.rating = parseFloat(newRating);
+        const newWhy = prompt('New why:', deal.why);
+        if(newWhy) deal.why = newWhy;
+        alert('Deal updated');
+        renderAdminTable(cat);
+    }));
+    
+    document.querySelectorAll('.delete-deal').forEach(btn=>btn.addEventListener('click', ()=>{
+        const cat = btn.getAttribute('data-cat');
+        const id = btn.getAttribute('data-id');
+        if(confirm(`Delete "${dealsData[cat].find(d=>d.id===id)?.name}"?`)){
+            dealsData[cat] = dealsData[cat].filter(d=>d.id!==id);
+            alert('Deal deleted');
+            renderAdminTable(cat);
+        }
+    }));
+}
+
 function renderHome(){ 
     updateSEO('Home','Your essential guide to the cheapest, verified services in Berlin.');
     let html=`<h2 class="text-3xl font-extrabold text-secondary mb-6">Top Saver Categories</h2><div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">`;
@@ -250,7 +347,8 @@ function renderSidebar(currentRoute){
         const isActive = currentRoute === `listing/${key}` ? 'bg-logo-blue/10 text-logo-blue font-semibold' : 'text-gray-700 hover:bg-gray-100';
         html+=`<a href="#listing/${key}" class="block px-3 py-2 rounded-lg transition-colors duration-150 ${isActive}">${getTitleFromKey(key)}</a>`;
     });
-    html += `</nav><h3 class="text-lg font-bold text-secondary mb-3 border-t pt-4">Research & Info</h3><nav class="space-y-1"><a href="#featured" class="block px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100">Featured Deals</a></nav>`;
+    html += `</nav><h3 class="text-lg font-bold text-secondary mb-3 border-t pt-4">Research & Info</h3><nav class="space-y-1 mb-4"><a href="#featured" class="block px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100">Featured Deals</a></nav>`;
+    html += `<nav class="border-t pt-4"><a href="#admin" class="block px-3 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark transition">⚙️ Admin Panel</a></nav>`;
     sidebar.innerHTML = html;
 }
 
@@ -274,6 +372,7 @@ function router(){
         case 'blogs': renderBlogs(); break;
         case 'blog': renderBlogDetail(p1); break;
         case 'saved': renderSavedView(); break;
+        case 'admin': renderAdmin(); break;
         default: renderHome(); break;
     }
     document.getElementById('content').scrollIntoView({behavior:'smooth'});
